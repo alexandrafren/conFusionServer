@@ -23,6 +23,35 @@ const app = express();
 app.use(morgan('dev'))
 app.use(bodyParser.json());
 
+function auth(req,res,next) {
+    console.log(req.headers);
+
+    var authHeader = req.headers.authorization;
+
+    if (!authHeader){
+        var error = new Error('You are not authenticated')
+        res.setHeader('WWW-Authenticate', 'Basic')
+        err.status = 401;
+        return next(err)
+    }
+
+    var auth = new Buffer(authHeader.split(' ')[1], 'base64').toString().split(':')
+    var username = auth[0];
+    var password = auth[1];
+
+    if (username === 'admin' && password === 'password'){
+        next();
+    }
+    else {
+        var error = new Error('You are not authenticated')
+        res.setHeader('WWW-Authenticate', 'Basic')
+        err.status = 401;
+        return next(err)
+    }
+}
+
+app.use(auth)
+
 app.use('/dishes', dishRouter)
 app.use('/leaders', leaderRouter)
 app.use('/promotions', promoRouter)
